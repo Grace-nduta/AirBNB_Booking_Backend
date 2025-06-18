@@ -3,6 +3,8 @@ from server.models import  db , User, Listing , Booking
 from flask_jwt_extended import jwt_required, get_jwt_identity
 admin_blueprint = Blueprint('admin', __name__)
 
+
+#==========Get all users==========
 @admin_blueprint.route('/users', methods=['GET'])
 @jwt_required()
 def get_all_users():
@@ -12,6 +14,7 @@ def get_all_users():
     users = User.query.all()
     return jsonify([user.to_dict() for user in users]), 200
 
+#==========Get all listings==========
 @admin_blueprint.route('/listings', methods=['GET'])
 @jwt_required()
 def get_all_listings():
@@ -21,6 +24,7 @@ def get_all_listings():
     listings = Listing.query.all()
     return jsonify([listing.to_dict() for listing in listings]), 200
 
+#==========Delete a user by id==========
 @admin_blueprint.route('/users/<int:user_id>', methods=['DELETE'])
 @jwt_required()
 def delete_user(user_id):
@@ -34,6 +38,7 @@ def delete_user(user_id):
     db.session.commit()
     return jsonify({"success": "User deleted successfully"}), 200
 
+#==========Delete a listing by id==========
 @admin_blueprint.route('/listings/<int:listing_id>', methods=['DELETE'])
 @jwt_required()
 def delete_listing(listing_id):
@@ -47,6 +52,7 @@ def delete_listing(listing_id):
     db.session.commit()
     return jsonify({"success": "Listing deleted successfully"}), 200
     
+# ==========Get analytics==========
 @admin_blueprint.route('/analytics', methods=['GET'])
 @jwt_required()
 def get_analytics():
@@ -65,7 +71,7 @@ def get_analytics():
         'popular_locations' : [{'location' : loc, 'bookings' : count} for loc, count in popular_locations]
     })
     
-# promote or demote a user from guest to host or vice versa
+# ======promote or demote a user from guest to host or vice versa ==========
 @admin_blueprint.route('/users/<int:user_id>/role', methods=['PATCH'])
 @jwt_required()
 def change_user_role(user_id):

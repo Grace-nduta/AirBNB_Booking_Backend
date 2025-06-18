@@ -15,9 +15,6 @@ def get_all_listings():
             "description": listing.description,
             "price_per_night": listing.price_per_night,
             "amenities": listing.amenities,
-            "image_url": listing.image_url,
-            "host_id": listing.user_id,
-            "created_at": listing.created_at
         })
     return jsonify (result), 200
 
@@ -32,23 +29,31 @@ def get_listing(listing_id):
             "price_per_night": listing.price_per_night,
             "amenities": listing.amenities,
             "image_url": listing.image_url,
-            "host_id": listing.user_id,
-            "created_at": listing.created_at
+            
         })
     return jsonify({"error": "Listing not found"}), 404
 
-@listing_bp.route('/listings', methods=['POST'])
-def create_listing():
-    data = request.json
-    new_listing = Listing(
-        user_id=data['user_id'],
-        title=data['title'],
-        description=data['description'],
-        price_per_night=data['price_per_night'],
-        amenities=data.get('amenities', ''),
-        image_url=data.get('image_url', '')
-    )
-    db.session.add(new_listing)
-    db.session.commit()
-    return jsonify({"success": "Listing created successfully!"}), 201
+@listing_bp.route('/listings', methods=['GET'])
+def get_listings():
+    title = request.args.get('title')
+    location = request.args.get('location')
+    min_price = request.args.get('min_price', type=float)
+    max_price = request.args.get('max_price', type=float)
+
+    query = Listing.query
+    if title:
+        query = query.filter(Listing.title.like(f'%{title}%'))
+    if location:
+        query = query.filter(Listing.location.like(f'%{location}%'))
+    if min_price:
+        query = query.filter(Listing.price_per_night >= min_price)
+
+    if max_price:
+        query = query.filter(Listing.price_per_night <= max_price)
+
+    listings = query.all()
+    return jsonify([listing.to_dict() for listing in listings])
+
+
+
 

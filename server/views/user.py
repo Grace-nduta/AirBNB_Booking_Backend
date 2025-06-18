@@ -1,12 +1,8 @@
 from flask import Blueprint, request, jsonify
-from server.models import User, db
+from server.models import User, db , Booking, Favorites
 from werkzeug.security import generate_password_hash
-user_bp = Blueprint('user', __name__)
 
-@user_bp.route('/users', methods=['GET'])
-def get_users():
-    users = User.query.all()
-    return jsonify([{'id': user.id, 'username': user.username, 'email': user.email, 'role': user.role} for user in users])
+user_bp = Blueprint('user', __name__)
 
 @user_bp.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
@@ -16,34 +12,33 @@ def get_user(user_id):
 @user_bp.route('/users', methods=['POST'])
 def create_user():
     data = request.json
-    user = User(
-        username=data.get['username'],
-        email=data.get['email'],
-        password=data.get['password'],
-        role=data.get('role', 'guest')
-    )
 
-    if not user.username or not user.email or not user.password:
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    role = data.get('role', 'guest')
+
+    if not username or not email or not password:
         return jsonify({"error": "Username, email, and password are required"}), 400
-    
-    existing_user = user.query.filter_by(username=user.username).first()
-    existing_email = user.query.filter_by(email=user.email).first()
+
+    existing_user = User.query.filter_by(username=username).first()
+    existing_email = User.query.filter_by(email=email).first()
 
     if existing_user:
         return jsonify({"error": "Username already exists"}), 400
     if existing_email:
         return jsonify({"error": "Email already exists"}), 400
-    
+
     new_user = User(
-        username=user.username,
-        email=user.email,
-        password=generate_password_hash(user.password),
-        role=user.role or 'guest'
+        username=username,
+        email=email,
+        password=generate_password_hash(password),
+        role=role
     )
-    
+
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"success":"New user created successfully!"}), 201
+    return jsonify({"success": "New user created successfully!"}), 201
 
 @user_bp.route('/users/<int:user_id>', methods=['PATCH'])
 def update_user(user_id):
@@ -57,9 +52,10 @@ def update_user(user_id):
     if 'email' in data:
         user.email = data['email']
     if 'password' in data:
-        user.password = data['password']
+        user.password = generate_password_hash(data['password'])
     if 'role' in data:
         user.role = data['role']
+
 
     db.session.commit()
     return jsonify({"success": "User updated successfully!"})
@@ -69,7 +65,9 @@ def delete_user(user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "Ooops! User not found."}), 404
-
+    
+    Booking.query.filter_by(user_id=user.id).delete()
+    Favorites.query.filter_by(user_id=user.id).delete()
     db.session.delete(user)
     db.session.commit()
     return jsonify({"success": "User deleted successfully!"})

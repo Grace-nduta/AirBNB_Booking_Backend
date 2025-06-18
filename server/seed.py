@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from server.app import app
-from server.models import db, User, Listing, Booking, Favorites
+from server.models import db, User, Listing, Booking, Favorites, Review
 
 users = [
     {"username":"Jayden Kamau", "email":"jayden@gmail.com", "password":"jay123", "role":"host"},
@@ -32,13 +32,23 @@ favorites = [
     {"id":3, "user_id": 4, "listing_id": 3, "note": "Can't wait to stay here!"},
     {"id":4, "user_id": 5, "listing_id": 4, "note": "This is my dream vacation spot!"},
     {"id":5, "user_id": 1, "listing_id": 5, "note": "Perfect for a weekend getaway!"},
-]      
+] 
+
+reviews = [
+    {"id": 1, "user_id": 2, "listing_id": 1, "comment": "Had a wonderful stay! The cottage was cozy and well-equipped.", "rating": 5},
+    {"id": 2, "user_id": 3, "listing_id": 2, "comment": "The apartment was modern and clean. Great location!", "rating": 4},
+    {"id": 3, "user_id": 4, "listing_id": 3, "comment": "Amazing views from the beach house. Highly recommend!", "rating": 5},
+    {"id": 4, "user_id": 5, "listing_id": 4, "comment": "The cabin was rustic and charming. Perfect for a mountain retreat.", "rating": 4},
+    {"id": 5, "user_id": 1, "listing_id": 5, "comment": "The villa was luxurious and spacious. Loved the private pool!", "rating": 5},
+
+]
 
 with app.app_context():
     db.session.query(Favorites).delete()
     db.session.query(Booking).delete()
     db.session.query(Listing).delete()
     db.session.query(User).delete()
+    db.session.query(Review).delete()
     db.session.commit()
 
     user_objs = [User(**user) for user in users]
@@ -55,6 +65,10 @@ with app.app_context():
 
     favorite_objs = [Favorites(**favorite) for favorite in favorites]
     db.session.add_all(favorite_objs)
+    db.session.commit()
+
+    review_objs = [Review(**review) for review in reviews]
+    db.session.add_all(review_objs)
     db.session.commit()
 
     print("Seed data inserted successfully!")

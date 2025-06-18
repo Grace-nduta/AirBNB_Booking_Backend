@@ -61,7 +61,19 @@ class Favorites (db.Model):
     note = db.Column(db.String(200), default ="Want to book next month we gatchu you can always count on us!", nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# ------Reviews and comments------
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    listing_id = db.Column(db.Integer, db.ForeignKey('listings.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  
+    comment = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Relationships
+    user = db.relationship('User', backref='reviews')
+    listing = db.relationship('Listing', backref='reviews')
 
 
 
