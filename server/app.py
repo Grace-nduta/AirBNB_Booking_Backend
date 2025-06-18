@@ -10,7 +10,12 @@ from server.views.admin import admin_blueprint
 from server.views.booking import booking_bp
 from server.views.favorite import favorite_bp
 from server.views.review import review_bp
+from server.views.auth import auth_bp
 import os
+from datetime import timedelta
+
+# JWT importations
+from flask_jwt_extended import JWTManager
 
 
 app = Flask(__name__)
@@ -22,6 +27,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 migrate = Migrate(app, db)
 db.init_app(app)
 
+# JWT configuration
+app.config["JWT_SECRET_KEY"] = "wyhjmmxmjhhdytd" 
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=3)  
+jwt = JWTManager(app)
+jwt.init_app(app)
+
 # Views go here!
 app.register_blueprint(user_bp)
 app.register_blueprint(host_blueprint)
@@ -30,7 +41,7 @@ app.register_blueprint(admin_blueprint)
 app.register_blueprint(booking_bp)
 app.register_blueprint(favorite_bp)
 app.register_blueprint(review_bp)
-
+app.register_blueprint(auth_bp)
 
 
 @app.route('/')

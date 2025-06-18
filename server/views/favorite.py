@@ -11,10 +11,6 @@ def get_favorites(user_id):
         results.append({
             "favorite_id": favorite.id,
             "listing_id": favorite.listing_id,
-            "title": "",
-            "description": "",
-            "price_per_night": "",
-            "image_url": "",
             "note": favorite.note,
             "created_at": favorite.created_at
         })

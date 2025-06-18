@@ -1,18 +1,27 @@
 from flask import Blueprint, jsonify, request
-from server.models import  db , User, Listing , Booking
+from server.models import  db , User, Listing , Booking , Favorites, Review
 from flask_jwt_extended import jwt_required, get_jwt_identity
 admin_blueprint = Blueprint('admin', __name__)
-
 
 #==========Get all users==========
 @admin_blueprint.route('/users', methods=['GET'])
 @jwt_required()
 def get_all_users():
-    current_user = get_jwt_identity()
-    if current_user['role'] != 'admin':
+    user_id = get_jwt_identity()
+    current_user = User.query.get(user_id)
+    if not current_user or current_user.role != 'admin':
         return jsonify({"error": "Unauthorized"}), 403
     users = User.query.all()
-    return jsonify([user.to_dict() for user in users]), 200
+    return jsonify([
+        {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at,
+        "role": user.role
+    } for user in users
+    ]), 200
 
 #==========Get all listings==========
 @admin_blueprint.route('/listings', methods=['GET'])
@@ -42,18 +51,23 @@ def delete_user(user_id):
 @admin_blueprint.route('/listings/<int:listing_id>', methods=['DELETE'])
 @jwt_required()
 def delete_listing(listing_id):
-    current_user = get_jwt_identity()
-    if current_user['role'] != 'admin':
+    user_id = get_jwt_identity()
+    current_user = User.query.get(user_id)
+    if not current_user or current_user.role != 'admin':
         return jsonify({"error": "Unauthorized"}), 403
     listing = Listing.query.get(listing_id)
     if not listing:
         return jsonify({"error": "Listing not found"}), 404
+    
+    Booking.query.filter_by(listing_id=listing_id).delete()
+    Favorites.query.filter_by(listing_id=listing_id).delete()
+    Review.query.filter_by(listing_id=listing_id).delete()
     db.session.delete(listing)
     db.session.commit()
     return jsonify({"success": "Listing deleted successfully"}), 200
     
 # ==========Get analytics==========
-@admin_blueprint.route('/analytics', methods=['GET'])
+@admin_blueprint.route('/analytics', methods=['GET']) # Not complete(gey back to it later)
 @jwt_required()
 def get_analytics():
     current_user = get_jwt_identity()
@@ -75,8 +89,9 @@ def get_analytics():
 @admin_blueprint.route('/users/<int:user_id>/role', methods=['PATCH'])
 @jwt_required()
 def change_user_role(user_id):
-    current_user = get_jwt_identity()
-    if current_user['role'] != 'admin':
+    admin_id = get_jwt_identity()
+    current_user = User.query.get(admin_id)
+    if not current_user or current_user.role != 'admin':
         return jsonify({"error": "Unauthorized"}), 403
     user = User.query.get(user_id)
     if not user:

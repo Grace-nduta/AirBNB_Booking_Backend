@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 from server.app import app
 from server.models import db, User, Listing, Booking, Favorites, Review
+from werkzeug.security import generate_password_hash
 
 users = [
     {"username":"Jayden Kamau", "email":"jayden@gmail.com", "password":"jay123", "role":"host"},
     {"username":"Margaret Wambui", "email":"margaret@gmail.com", "password":"magimagi", "role":"guest"},
     {"username": "Jason Kahare", "email": "jay@gmail.com", "password": "jayjay124", "role": "guest"},
     {"username": "George Kamau", "email": "kamau3@gmail.com", "password": "kamaubeme123", "role": "guest"},
-    {"username": "William Muiruri", "email":"muiruri@gmail.com", "password":"muiruri123", "role":"Admin"},
+    {"username": "William Muiruri", "email":"muiruri@gmail.com", "password":"muiruri123", "role":"admin"},
 ]
 
 listings = [
-    {"id":1 , "user_id": 1, "title": "Cozy Cottage", "description": "A cozy cottage in the countryside.", "price_per_night": 100.0, "amenities": "WiFi, Kitchen, Parking", "image_url": "https://unsplash.com/photos/a-bedroom-with-a-bed-desk-and-dresser-G3aWpLlWao4"},
-    {"id":2 , "user_id": 1, "title": "Modern Apartment", "description": "A modern apartment in the city center.", "price_per_night": 150.0, "amenities": "WiFi, Air Conditioning, Pool", "image_url": "https://unsplash.com/photos/cozy-bedroom-with-stylish-wooden-and-modern-design-cNP6cYiE7QI"},
-    {"id":3 , "user_id": 2, "title": "Beach House", "description": "A beautiful beach house with ocean views.", "price_per_night": 200.0, "amenities": "WiFi, Beach Access, Pool", "image_url": "https://unsplash.com/photos/a-bedroom-with-a-view-of-the-ocean-OfLluwPamI0"},
-    {"id":4 , "user_id": 2, "title": "Mountain Cabin", "description": "A rustic cabin in the mountains.", "price_per_night": 120.0, "amenities": "WiFi, Fireplace, Hiking Trails", "image_url": "https://unsplash.com/photos/a-bed-sitting-inside-of-a-bedroom-next-to-a-window-pZ-ioR01pz0"},
-    {"id":5 , "user_id": 3, "title": "Luxury Villa", "description": "A luxury villa with a private pool.", "price_per_night": 300.0, "amenities": "WiFi, Pool, Spa", "image_url": "https://unsplash.com/photos/a-large-swimming-pool-with-chairs-and-umbrellas-eZ-m9WlR0rc"},
+    {"id":1 , "user_id": 1, "title": "Cozy Cottage", "description": "A cozy cottage in the countryside.", "price_per_night": 100.0, "amenities": "WiFi, Kitchen, Parking", "location": "country side", "image_url": "https://unsplash.com/photos/a-bedroom-with-a-bed-desk-and-dresser-G3aWpLlWao4"},
+    {"id":2 , "user_id": 1, "title": "Modern Apartment", "description": "A modern apartment in the city center.", "price_per_night": 150.0, "amenities": "WiFi, Air Conditioning, Pool", "location": "city center", "image_url": "https://unsplash.com/photos/cozy-bedroom-with-stylish-wooden-and-modern-design-cNP6cYiE7QI"},
+    {"id":3 , "user_id": 2, "title": "Beach House", "description": "A beautiful beach house with ocean views.", "price_per_night": 200.0, "amenities": "WiFi, Beach Access, Pool", "location": "Beachfront", "image_url": "https://unsplash.com/photos/a-bedroom-with-a-view-of-the-ocean-OfLluwPamI0"},
+    {"id":4 , "user_id": 2, "title": "Mountain Cabin", "description": "A rustic cabin in the mountains.", "price_per_night": 120.0, "amenities": "WiFi, Fireplace, Hiking Trails", "location": "Mountains", "image_url": "https://unsplash.com/photos/a-bed-sitting-inside-of-a-bedroom-next-to-a-window-pZ-ioR01pz0"},
+    {"id":5 , "user_id": 3, "title": "Luxury Villa", "description": "A luxury villa with a private pool.", "price_per_night": 300.0, "amenities": "WiFi, Pool, Spa", "location": "Uptown", "image_url": "https://unsplash.com/photos/a-large-swimming-pool-with-chairs-and-umbrellas-eZ-m9WlR0rc"},
 ]
 
 bookings = [
@@ -51,7 +52,7 @@ with app.app_context():
     db.session.query(Review).delete()
     db.session.commit()
 
-    user_objs = [User(**user) for user in users]
+    user_objs = [User(username=user["username"], email=user["email"], password=generate_password_hash(user["password"]), role=user["role"]) for user in users]
     db.session.add_all(user_objs)
     db.session.commit()
 

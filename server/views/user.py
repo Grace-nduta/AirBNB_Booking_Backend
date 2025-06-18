@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from server.models import User, db , Booking, Favorites
+from server.models import User, db , Booking, Favorites, Review
 from werkzeug.security import generate_password_hash
 
 user_bp = Blueprint('user', __name__)
@@ -68,6 +68,7 @@ def delete_user(user_id):
     
     Booking.query.filter_by(user_id=user.id).delete()
     Favorites.query.filter_by(user_id=user.id).delete()
+    Review.query.filter_by(user_id=user.id).delete()
     db.session.delete(user)
     db.session.commit()
     return jsonify({"success": "User deleted successfully!"})
