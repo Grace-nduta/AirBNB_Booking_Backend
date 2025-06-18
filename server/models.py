@@ -29,7 +29,7 @@ class Booking(db.Model):
     __tablename__ = 'bookings'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    listing_id = db.Column(db.Integer, nullable=False)
+    listing_id = db.Column(db.Integer, db.ForeignKey('listings.id'), nullable=False)
     check_in = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     check_out = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     booking_status = db.Column(db.String(20), default='pending', nullable=False)
@@ -57,7 +57,7 @@ class Favorites (db.Model):
     __tablename__ = 'favorites'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    listing_id = db.Column(db.Integer, nullable=False)
+    listing_id = db.Column(db.Integer, db.ForeignKey('listings.id'), nullable=False)
     note = db.Column(db.String(200), default ="Want to book next month we gatchu you can always count on us!", nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

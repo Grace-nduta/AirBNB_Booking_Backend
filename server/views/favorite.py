@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from server.models import db, Favorites, listing, user
+from server.models import db, Favorites, Listing, User
 
 favorite_bp = Blueprint('favorite_', __name__)
 

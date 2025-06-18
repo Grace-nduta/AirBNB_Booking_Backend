@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from server.models import User, db
-
+from werkzeug.security import generate_password_hash
 user_bp = Blueprint('user', __name__)
 
 @user_bp.route('/users', methods=['GET'])
@@ -16,12 +16,31 @@ def get_user(user_id):
 @user_bp.route('/users', methods=['POST'])
 def create_user():
     data = request.json
-    new_user = User(
-        username=data['username'],
-        email=data['email'],
-        password=data['password'],
+    user = User(
+        username=data.get['username'],
+        email=data.get['email'],
+        password=data.get['password'],
         role=data.get('role', 'guest')
     )
+
+    if not user.username or not user.email or not user.password:
+        return jsonify({"error": "Username, email, and password are required"}), 400
+    
+    existing_user = user.query.filter_by(username=user.username).first()
+    existing_email = user.query.filter_by(email=user.email).first()
+
+    if existing_user:
+        return jsonify({"error": "Username already exists"}), 400
+    if existing_email:
+        return jsonify({"error": "Email already exists"}), 400
+    
+    new_user = User(
+        username=user.username,
+        email=user.email,
+        password=generate_password_hash(user.password),
+        role=user.role or 'guest'
+    )
+    
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"success":"New user created successfully!"}), 201

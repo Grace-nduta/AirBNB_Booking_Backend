@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from server.models import Admin, db , User, Listing , Booking
+from server.models import  db , User, Listing , Booking
 from flask_jwt_extended import jwt_required, get_jwt_identity
 admin_blueprint = Blueprint('admin', __name__)
 
