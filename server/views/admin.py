@@ -67,11 +67,12 @@ def delete_listing(listing_id):
     return jsonify({"success": "Listing deleted successfully"}), 200
     
 # ==========Get analytics==========
-@admin_blueprint.route('/analytics', methods=['GET']) # Not complete(get back to it later)
+@admin_blueprint.route('/analytics', methods=['GET']) 
 @jwt_required()
 def get_analytics():
     current_user = get_jwt_identity()
-    if current_user['role'] != 'admin':
+    current_user = User.query.get(current_user)
+    if not current_user or current_user.role != 'admin':
         return jsonify({"error": "Unauthorized"}), 403
     total_bookings = Booking.query.count()
     total_revenue = db.session.query(db.func.sum(Booking.total_price)).scalar() or 0

@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 
 booking_bp = Blueprint('booking', __name__)
 
+# ========== Get all bookings for a user =========
 @booking_bp.route('/users/<int:user_id>/bookings', methods=['GET'])
 def get_user_bookings(user_id):
     bookings =Booking.query.filter_by(user_id=user_id).all()

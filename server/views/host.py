@@ -39,6 +39,24 @@ def create_listing():
     db.session.commit()
     return jsonify({"success": "Listing created successfully!"}), 201 
 
+# ========== update bookings =========
+@host_blueprint.route('/host/bookings/<int:booking_id>', methods=['PUT']) 
+@jwt_required()
+def update_booking(booking_id):
+    identity = get_jwt_identity()
+    role_check = require_host_role(identity)
+    if role_check:
+        return role_check
+    booking = Booking.query.get(booking_id)
+    if not booking:
+        return jsonify({"error": "Booking not found"}), 404
+    if booking.listing.user_id != identity:
+        return jsonify({"error": "Unauthorized"}), 403
+    data = request.json
+    booking.booking_status = data.get('booking_status', booking.booking_status)
+    db.session.commit()
+    return jsonify({"success": "Booking updated successfully!"}), 200
+
 # ========== Get Bookings made on their listings =========
 @host_blueprint.route('/host/bookings', methods=['GET'])
 @jwt_required()
