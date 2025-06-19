@@ -67,7 +67,7 @@ def delete_listing(listing_id):
     return jsonify({"success": "Listing deleted successfully"}), 200
     
 # ==========Get analytics==========
-@admin_blueprint.route('/analytics', methods=['GET']) # Not complete(gey back to it later)
+@admin_blueprint.route('/analytics', methods=['GET']) # Not complete(get back to it later)
 @jwt_required()
 def get_analytics():
     current_user = get_jwt_identity()

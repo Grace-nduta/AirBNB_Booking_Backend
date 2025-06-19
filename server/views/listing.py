@@ -28,6 +28,7 @@ def get_listing(listing_id):
             "description": listing.description,
             "price_per_night": listing.price_per_night,
             "amenities": listing.amenities,
+            "location": listing.location,
             "image_url": listing.image_url,
             
         })
