@@ -1,36 +1,33 @@
 #!/usr/bin/env python3
 
 from flask import Flask
-from server.models import db, User, Booking, Listing, Favorites, Review
+from models import db, User, Booking, Listing, Favorites, Review, TokenBlocklist
 from flask_migrate import Migrate
-from server.views.user import user_bp
-from server.views.host import host_blueprint
-from server.views.listing import listing_bp
-from server.views.admin import admin_blueprint
-from server.views.booking import booking_bp
-from server.views.favorite import favorite_bp
-from server.views.review import review_bp
-from server.views.auth import auth_bp
+from views.user import user_bp
+from views.host import host_blueprint
+from views.listing import listing_bp
+from views.admin import admin_blueprint
+from views.booking import booking_bp
+from views.favorite import favorite_bp
+from views.review import review_bp
+from views.auth import auth_bp
 import os
 from datetime import timedelta
 
 # JWT importations
 from flask_jwt_extended import JWTManager
-from server.models import TokenBlocklist
-
 
 app = Flask(__name__)
 
-base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(base_dir, "app.db")}'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+# Use local app.db in the server directory
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 migrate = Migrate(app, db)
 db.init_app(app)
 
 # JWT configuration
-app.config["JWT_SECRET_KEY"] = "wyhjmmxmjhhdytd" 
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=3)  
+app.config["JWT_SECRET_KEY"] = "wyhjmmxmjhhdytd"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=3)
 jwt = JWTManager(app)
 jwt.init_app(app)
 
@@ -45,23 +42,19 @@ app.register_blueprint(review_bp)
 app.register_blueprint(auth_bp)
 
 # Callback function to check if a JWT exists in the database blocklist
+
+
 @jwt.token_in_blocklist_loader
 def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
     jti = jwt_payload["jti"]
     token = db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar()
-
     return token is not None
-
-
-
-
 
 
 @app.route('/')
 def home():
     return '<h1>Airbnb Booking</h1>'
 
-   
+
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
-

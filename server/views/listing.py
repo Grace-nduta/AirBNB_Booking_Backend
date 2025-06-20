@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
-from server.models import Listing, db
+from models import Listing, db
 
 listing_bp = Blueprint('listing', __name__)
+
 
 @listing_bp.route('/listings', methods=['GET'])
 def get_all_listings():
@@ -16,7 +17,8 @@ def get_all_listings():
             "price_per_night": listing.price_per_night,
             "amenities": listing.amenities,
         })
-    return jsonify (result), 200
+    return jsonify(result), 200
+
 
 @listing_bp.route('/listings/<int:listing_id>', methods=['GET'])
 def get_listing(listing_id):
@@ -30,9 +32,10 @@ def get_listing(listing_id):
             "amenities": listing.amenities,
             "location": listing.location,
             "image_url": listing.image_url,
-            
+
         })
     return jsonify({"error": "Listing not found"}), 404
+
 
 @listing_bp.route('/listings', methods=['GET'])
 def get_listings():
@@ -54,7 +57,3 @@ def get_listings():
 
     listings = query.all()
     return jsonify([listing.to_dict() for listing in listings])
-
-
-
-

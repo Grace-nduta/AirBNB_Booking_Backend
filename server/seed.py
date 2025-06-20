@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from server.app import app
-from server.models import db, User, Listing, Booking, Favorites, Review
+from app import app
+from models import db, User, Listing, Booking, Favorites, Review
 from werkzeug.security import generate_password_hash
 
 users = [

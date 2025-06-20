@@ -1,12 +1,12 @@
-from server.models import Booking, db
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
+from models import Booking, db
 
 booking_bp = Blueprint('booking', __name__)
 
 # ========== Get all bookings for a user =========
 @booking_bp.route('/users/<int:user_id>/bookings', methods=['GET'])
 def get_user_bookings(user_id):
-    bookings =Booking.query.filter_by(user_id=user_id).all()
+    bookings = Booking.query.filter_by(user_id=user_id).all()
     result = []
     for booking in bookings:
         result.append({
@@ -19,7 +19,8 @@ def get_user_bookings(user_id):
             "created_at": booking.created_at
         })
     return jsonify(result), 200
-      
+
+
 @booking_bp.route('/bookings/<int:booking_id>', methods=['GET'])
 def get_booking(booking_id):
     booking = Booking.query.get(booking_id)
@@ -42,8 +43,8 @@ def create_booking():
     listing_id = data['listing_id']
     check_in = data['check_in']
     check_out = data['check_out']
-    #total_price = data['total_price']
-    #booking_status = data.get('booking_status', 'pending')
+    # total_price = data['total_price']
+    # booking_status = data.get('booking_status', 'pending')
 
     # Check for overlapping bookings
     overlapping = Booking.query.filter(
@@ -60,7 +61,7 @@ def create_booking():
         check_in=check_in,
         check_out=check_out,
         # booking_status=booking_status,
-        #total_price=total_price
+        # total_price=total_price
     )
     db.session.add(new_booking)
     db.session.commit()

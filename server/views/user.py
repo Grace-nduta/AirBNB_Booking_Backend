@@ -1,14 +1,25 @@
 from flask import Blueprint, request, jsonify
-from server.models import User, db , Booking, Favorites, Review
+from models import db, User, Booking, Favorites, Review
 from werkzeug.security import generate_password_hash
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 user_bp = Blueprint('user', __name__)
 
 @user_bp.route('/users/<int:user_id>', methods=['GET'])
+@jwt_required()
 def get_user(user_id):
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if current_user.role == 'guest':
+        if current_user_id != user_id or user.role !='guest':
+            return jsonify({'error': 'You are not authorized to view this user'}), 403
+        
     return jsonify({'id': user.id, 'username': user.username, 'email': user.email, 'role': user.role})
+
+    
 
 @user_bp.route('/users', methods=['POST'])
 def create_user():
@@ -41,6 +52,7 @@ def create_user():
     db.session.commit()
     return jsonify({"success": "New user created successfully!"}), 201
 
+
 @user_bp.route('/users/<int:user_id>', methods=['PATCH'])
 @jwt_required()
 def update_user(user_id):
@@ -61,16 +73,17 @@ def update_user(user_id):
         if current_user.role == 'admin':
             user.role = data['role']
         else:
-            return jsonify({"error": "You are not authorized to change the role!"}), 403    
+            return jsonify({"error": "You are not authorized to change the role!"}), 403
 
     db.session.commit()
     return jsonify({"success": "User updated successfully!"})
+
 
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
 @jwt_required()
 def delete_user(user_id):
     current_user_id = get_jwt_identity()
-    current_user=User.query.get(current_user_id)
+    current_user = User.query.get(current_user_id)
     user = User.query.get(user_id)
     if not current_user or current_user.role != 'guest':
         return jsonify({"error": "You are not authorized to delete this account!"}), 403
@@ -80,5 +93,3 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     return jsonify({"success": "User deleted successfully!"})
-
-

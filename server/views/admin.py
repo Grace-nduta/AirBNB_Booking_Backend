@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
-from server.models import  db , User, Listing , Booking , Favorites, Review
+from models import db, User, Listing, Booking, Favorites, Review
 from flask_jwt_extended import jwt_required, get_jwt_identity
 admin_blueprint = Blueprint('admin', __name__)
 
-#==========Get all users==========
+# ==========Get all users==========
 @admin_blueprint.route('/users', methods=['GET'])
 @jwt_required()
 def get_all_users():
@@ -14,16 +14,16 @@ def get_all_users():
     users = User.query.all()
     return jsonify([
         {
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "created_at": user.created_at,
-        "updated_at": user.updated_at,
-        "role": user.role
-    } for user in users
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
+            "role": user.role
+        } for user in users
     ]), 200
 
-#==========Get all listings==========
+# ==========Get all listings==========
 @admin_blueprint.route('/listings', methods=['GET'])
 @jwt_required()
 def get_all_listings():
@@ -33,21 +33,7 @@ def get_all_listings():
     listings = Listing.query.all()
     return jsonify([listing.to_dict() for listing in listings]), 200
 
-#==========Delete a user by id==========
-@admin_blueprint.route('/users/<int:user_id>', methods=['DELETE'])
-@jwt_required()
-def delete_user(user_id):
-    current_user = get_jwt_identity()
-    if current_user['role'] != 'admin':
-        return jsonify({"error": "Unauthorized"}), 403
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({"success": "User deleted successfully"}), 200
-
-#==========Delete a listing by id==========
+# ==========Delete a listing by id==========
 @admin_blueprint.route('/listings/<int:listing_id>', methods=['DELETE'])
 @jwt_required()
 def delete_listing(listing_id):
@@ -58,16 +44,16 @@ def delete_listing(listing_id):
     listing = Listing.query.get(listing_id)
     if not listing:
         return jsonify({"error": "Listing not found"}), 404
-    
+
     Booking.query.filter_by(listing_id=listing_id).delete()
     Favorites.query.filter_by(listing_id=listing_id).delete()
     Review.query.filter_by(listing_id=listing_id).delete()
     db.session.delete(listing)
     db.session.commit()
     return jsonify({"success": "Listing deleted successfully"}), 200
-    
+
 # ==========Get analytics==========
-@admin_blueprint.route('/analytics', methods=['GET']) 
+@admin_blueprint.route('/analytics', methods=['GET'])
 @jwt_required()
 def get_analytics():
     current_user = get_jwt_identity()
@@ -75,7 +61,8 @@ def get_analytics():
     if not current_user or current_user.role != 'admin':
         return jsonify({"error": "Unauthorized"}), 403
     total_bookings = Booking.query.count()
-    total_revenue = db.session.query(db.func.sum(Booking.total_price)).scalar() or 0
+    total_revenue = db.session.query(
+        db.func.sum(Booking.total_price)).scalar() or 0
     popular_locations = db.session.query(
         Listing.location,
         db.func.count(Booking.id).label('booking_count')
@@ -83,9 +70,9 @@ def get_analytics():
     return jsonify({
         'total_bookings': total_bookings,
         'total_revenue': total_revenue,
-        'popular_locations' : [{'location' : loc, 'bookings' : count} for loc, count in popular_locations]
+        'popular_locations': [{'location': loc, 'bookings': count} for loc, count in popular_locations]
     })
-    
+
 # ======promote or demote a user from guest to host or vice versa ==========
 @admin_blueprint.route('/users/<int:user_id>/role', methods=['PATCH'])
 @jwt_required()
