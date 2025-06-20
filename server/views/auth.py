@@ -1,7 +1,10 @@
 from flask import Blueprint, request, jsonify
-from server.models import User, db , Booking, Favorites, Review
+from server.models import User, db , Booking, Favorites, Review, TokenBlocklist
 from werkzeug.security import check_password_hash
 from flask_jwt_extended import create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from datetime import datetime
+from datetime import timezone
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -19,4 +22,30 @@ def login():
     return jsonify({"error": "invalid email or password!"}), 404
     
     
-    return jsonify(access_token=access_token)
+@auth_bp.route("/current_user", methods=["GET"])  
+@jwt_required()
+def get_current_user():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    user_data = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at
+    },
+    return jsonify(user_data), 200
+
+@auth_bp.route("/logout", methods=["DELETE"])
+@jwt_required()
+def modify_token():
+    jti = get_jwt()["jti"]
+    now = datetime.now(timezone.utc)
+    new_blocked_token=TokenBlocklist(jti=jti, created_at=now)
+    db.session.add(new_blocked_token)
+    db.session.commit()
+    return jsonify({"success": "Successfully logged out"}), 200
+    

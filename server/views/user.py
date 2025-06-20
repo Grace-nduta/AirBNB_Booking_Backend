@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from server.models import User, db , Booking, Favorites, Review
 from werkzeug.security import generate_password_hash
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 user_bp = Blueprint('user', __name__)
 
@@ -41,10 +42,13 @@ def create_user():
     return jsonify({"success": "New user created successfully!"}), 201
 
 @user_bp.route('/users/<int:user_id>', methods=['PATCH'])
+@jwt_required()
 def update_user(user_id):
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
     user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    if not current_user or current_user.role != 'guest':
+        return jsonify({"error": "You are not authorized to update this account!"}), 403
 
     data = request.json
     if 'username' in data:
@@ -54,18 +58,22 @@ def update_user(user_id):
     if 'password' in data:
         user.password = generate_password_hash(data['password'])
     if 'role' in data:
-        user.role = data['role']
-
+        if current_user.role == 'admin':
+            user.role = data['role']
+        else:
+            return jsonify({"error": "You are not authorized to change the role!"}), 403    
 
     db.session.commit()
     return jsonify({"success": "User updated successfully!"})
 
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
 def delete_user(user_id):
+    current_user_id = get_jwt_identity()
+    current_user=User.query.get(current_user_id)
     user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "Ooops! User not found."}), 404
-    
+    if not current_user or current_user.role != 'guest':
+        return jsonify({"error": "You are not authorized to delete this account!"}), 403
     Booking.query.filter_by(user_id=user.id).delete()
     Favorites.query.filter_by(user_id=user.id).delete()
     Review.query.filter_by(user_id=user.id).delete()

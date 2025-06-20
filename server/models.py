@@ -23,7 +23,12 @@ class User(db.Model):
     bookings = db.relationship('Booking', backref='guest', lazy=True)
     listings = db.relationship('Listing', backref='host', lazy=True)
     favorites = db.relationship('Favorites', backref='user', lazy=True)
-    
+
+class TokenBlocklist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    jti = db.Column(db.String(36), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False)
+        
 #----Booking Model---- 
 class Booking(db.Model):
     __tablename__ = 'bookings'

@@ -16,6 +16,7 @@ from datetime import timedelta
 
 # JWT importations
 from flask_jwt_extended import JWTManager
+from server.models import TokenBlocklist
 
 
 app = Flask(__name__)
@@ -42,6 +43,18 @@ app.register_blueprint(booking_bp)
 app.register_blueprint(favorite_bp)
 app.register_blueprint(review_bp)
 app.register_blueprint(auth_bp)
+
+# Callback function to check if a JWT exists in the database blocklist
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+    jti = jwt_payload["jti"]
+    token = db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar()
+
+    return token is not None
+
+
+
+
 
 
 @app.route('/')
